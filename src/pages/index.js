@@ -30,6 +30,12 @@ const KursCalculator = () => {
       type: 'number', 
       placeholder: 'z.B. 8'
     },
+    {
+      key: 'kursdauerMinuten',
+      label: 'Wie lange dauert eine Lektion? (Minuten)',
+      type: 'number',
+      placeholder: 'z.B. 80 für 1h 20min'
+    },
     { 
       key: 'kursgebuehr', 
       label: 'Wie viel kostet der gesamte Kurs pro Teilnehmer? (CHF)', 
@@ -62,13 +68,13 @@ const KursCalculator = () => {
     }
   ];
 
-  const calculateResults = () => {
+ const calculateResults = () => {
     const lizenzkostenProLektion = LIZENZKOSTEN_PRO_KURS / Number(formData.anzahlLektionen);
-
-    const zeitaufwandProLektion = Number(formData.vorbereitungszeit) + 1; // +1 für Durchführungszeit
+    
+    // Umrechnung der Kursdauer von Minuten in Stunden
+    const kursdauerStunden = Number(formData.kursdauerMinuten) / 60;
+    const zeitaufwandProLektion = Number(formData.vorbereitungszeit) + kursdauerStunden;
     const zeitkostenProLektion = zeitaufwandProLektion * Number(formData.stundensatz);
-    const zusatzkostenProLektion = Number(formData.snackkosten) + Number(formData.raummiete) + lizenzkostenProLektion;
-    const einnahmenProLektion = (Number(formData.kursgebuehr) * Number(formData.teilnehmer)) / Number(formData.anzahlLektionen);
 
     const gesamtZeitkosten = zeitkostenProLektion * Number(formData.anzahlLektionen);
     const gesamtZusatzkosten = (Number(formData.snackkosten) + Number(formData.raummiete)) * Number(formData.anzahlLektionen) + LIZENZKOSTEN_PRO_KURS;
