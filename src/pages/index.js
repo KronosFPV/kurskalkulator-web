@@ -4,18 +4,18 @@ const KursCalculator = () => {
   const [step, setStep] = React.useState(0);
   const [formData, setFormData] = React.useState({
     stundensatz: '',
-    kursgebuehr: '',
     anzahlLektionen: '',
-    parallelKurse: '',
+    kursgebuehr: '',
     teilnehmer: '',
     vorbereitungszeit: '',
-    materialkosten: '',
+    snackkosten: '',
     raummiete: ''
   });
   const [showResults, setShowResults] = React.useState(false);
 
   const MONATLICHE_LIZENZKOSTEN = 140;
   const KURS_MONATE = 2;
+  const LIZENZKOSTEN_PRO_KURS = MONATLICHE_LIZENZKOSTEN * KURS_MONATE / 3; // Annahme: durchschnittlich 3 Kurse
 
   const questions = [
     { 
@@ -26,7 +26,7 @@ const KursCalculator = () => {
     },
     { 
       key: 'anzahlLektionen', 
-      label: 'Wie viele Lektionen hat der gesamte Kurs?', 
+      label: 'Wie viele Lektionen hat dieser Kurs insgesamt?', 
       type: 'number', 
       placeholder: 'z.B. 8'
     },
@@ -35,12 +35,6 @@ const KursCalculator = () => {
       label: 'Wie viel kostet der gesamte Kurs pro Teilnehmer? (CHF)', 
       type: 'number', 
       placeholder: 'z.B. 200'
-    },
-    { 
-      key: 'parallelKurse', 
-      label: 'Wie viele Kurse laufen in diesem Monat insgesamt?', 
-      type: 'number', 
-      placeholder: 'z.B. 3'
     },
     { 
       key: 'teilnehmer', 
@@ -55,10 +49,10 @@ const KursCalculator = () => {
       placeholder: 'z.B. 2' 
     },
     { 
-      key: 'materialkosten', 
-      label: 'Wie hoch sind die Materialkosten pro Lektion? (CHF)', 
+      key: 'snackkosten', 
+      label: 'Budget für Snacks/Geschenke pro Lektion? (CHF)', 
       type: 'number', 
-      placeholder: 'z.B. 50' 
+      placeholder: 'z.B. 20' 
     },
     { 
       key: 'raummiete', 
@@ -69,28 +63,25 @@ const KursCalculator = () => {
   ];
 
   const calculateResults = () => {
-    const gesamtLizenzkosten = MONATLICHE_LIZENZKOSTEN * KURS_MONATE;
-    const lizenzkostenProKurs = gesamtLizenzkosten / Number(formData.parallelKurse);
-    const lizenzkostenProLektion = lizenzkostenProKurs / Number(formData.anzahlLektionen);
+    const lizenzkostenProLektion = LIZENZKOSTEN_PRO_KURS / Number(formData.anzahlLektionen);
 
-    const zeitaufwandProLektion = Number(formData.vorbereitungszeit) + 1;
+    const zeitaufwandProLektion = Number(formData.vorbereitungszeit) + 1; // +1 für Durchführungszeit
     const zeitkostenProLektion = zeitaufwandProLektion * Number(formData.stundensatz);
-    const zusatzkostenProLektion = Number(formData.materialkosten) + Number(formData.raummiete) + lizenzkostenProLektion;
+    const zusatzkostenProLektion = Number(formData.snackkosten) + Number(formData.raummiete) + lizenzkostenProLektion;
     const einnahmenProLektion = (Number(formData.kursgebuehr) * Number(formData.teilnehmer)) / Number(formData.anzahlLektionen);
 
     const gesamtZeitkosten = zeitkostenProLektion * Number(formData.anzahlLektionen);
-    const gesamtZusatzkosten = (Number(formData.materialkosten) + Number(formData.raummiete)) * Number(formData.anzahlLektionen) + lizenzkostenProKurs;
+    const gesamtZusatzkosten = (Number(formData.snackkosten) + Number(formData.raummiete)) * Number(formData.anzahlLektionen) + LIZENZKOSTEN_PRO_KURS;
     const gesamtEinnahmen = Number(formData.kursgebuehr) * Number(formData.teilnehmer);
     const gesamtGewinn = gesamtEinnahmen - gesamtZeitkosten - gesamtZusatzkosten;
 
-    const stundenaufwandGesamt = (Number(formData.vorbereitungszeit) + 1) * Number(formData.anzahlLektionen);
+    const stundenaufwandGesamt = zeitaufwandProLektion * Number(formData.anzahlLektionen);
     const stundenlohnEffektiv = gesamtGewinn / stundenaufwandGesamt;
 
     return {
       zeitaufwandProLektion,
       zeitkostenProLektion,
       zusatzkostenProLektion,
-      lizenzkostenProKurs,
       lizenzkostenProLektion,
       einnahmenProLektion,
       gesamtZeitkosten,
@@ -200,7 +191,7 @@ const KursCalculator = () => {
                       <li>• Kursgebühr pro Teilnehmer: {formData.kursgebuehr} CHF</li>
                       <li>• Anzahl Lektionen: {formData.anzahlLektionen}</li>
                       <li>• Anzahl Teilnehmer: {formData.teilnehmer}</li>
-                      <li>• Parallel laufende Kurse: {formData.parallelKurse}</li>
+                      <li>• Lizenzkosten-Anteil: {LIZENZKOSTEN_PRO_KURS.toFixed(2)} CHF pro Kurs</li>
                     </ul>
                   </div>
 
@@ -209,12 +200,11 @@ const KursCalculator = () => {
                       setStep(0);
                       setFormData({
                         stundensatz: '',
-                        kursgebuehr: '',
                         anzahlLektionen: '',
-                        parallelKurse: '',
+                        kursgebuehr: '',
                         teilnehmer: '',
                         vorbereitungszeit: '',
-                        materialkosten: '',
+                        snackkosten: '',
                         raummiete: ''
                       });
                       setShowResults(false);
