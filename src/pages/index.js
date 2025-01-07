@@ -3,6 +3,9 @@ import React from 'react';
 const KursCalculator = () => {
   const [step, setStep] = React.useState(0);
   const [formData, setFormData] = React.useState({
+    stundensatz: '',
+    kursgebuehr: '',
+    anzahlLektionen: '',
     parallelKurse: '',
     teilnehmer: '',
     vorbereitungszeit: '',
@@ -13,11 +16,26 @@ const KursCalculator = () => {
 
   const MONATLICHE_LIZENZKOSTEN = 140;
   const KURS_MONATE = 2;
-  const KURS_WOCHEN = 8;
-  const STUNDENSATZ = 35;
-  const TEILNEHMER_SATZ = 25;
 
   const questions = [
+    { 
+      key: 'stundensatz', 
+      label: 'Wie hoch ist Ihr Stundensatz? (CHF)', 
+      type: 'number', 
+      placeholder: 'z.B. 35'
+    },
+    { 
+      key: 'anzahlLektionen', 
+      label: 'Wie viele Lektionen hat der gesamte Kurs?', 
+      type: 'number', 
+      placeholder: 'z.B. 8'
+    },
+    { 
+      key: 'kursgebuehr', 
+      label: 'Wie viel kostet der gesamte Kurs pro Teilnehmer? (CHF)', 
+      type: 'number', 
+      placeholder: 'z.B. 200'
+    },
     { 
       key: 'parallelKurse', 
       label: 'Wie viele Kurse laufen in diesem Monat insgesamt?', 
@@ -53,17 +71,20 @@ const KursCalculator = () => {
   const calculateResults = () => {
     const gesamtLizenzkosten = MONATLICHE_LIZENZKOSTEN * KURS_MONATE;
     const lizenzkostenProKurs = gesamtLizenzkosten / Number(formData.parallelKurse);
-    const lizenzkostenProLektion = lizenzkostenProKurs / KURS_WOCHEN;
+    const lizenzkostenProLektion = lizenzkostenProKurs / Number(formData.anzahlLektionen);
 
     const zeitaufwandProLektion = Number(formData.vorbereitungszeit) + 1;
-    const zeitkostenProLektion = zeitaufwandProLektion * STUNDENSATZ;
+    const zeitkostenProLektion = zeitaufwandProLektion * Number(formData.stundensatz);
     const zusatzkostenProLektion = Number(formData.materialkosten) + Number(formData.raummiete) + lizenzkostenProLektion;
-    const einnahmenProLektion = Number(formData.teilnehmer) * TEILNEHMER_SATZ;
+    const einnahmenProLektion = (Number(formData.kursgebuehr) * Number(formData.teilnehmer)) / Number(formData.anzahlLektionen);
 
-    const gesamtZeitkosten = zeitkostenProLektion * KURS_WOCHEN;
-    const gesamtZusatzkosten = (Number(formData.materialkosten) + Number(formData.raummiete)) * KURS_WOCHEN + lizenzkostenProKurs;
-    const gesamtEinnahmen = einnahmenProLektion * KURS_WOCHEN;
+    const gesamtZeitkosten = zeitkostenProLektion * Number(formData.anzahlLektionen);
+    const gesamtZusatzkosten = (Number(formData.materialkosten) + Number(formData.raummiete)) * Number(formData.anzahlLektionen) + lizenzkostenProKurs;
+    const gesamtEinnahmen = Number(formData.kursgebuehr) * Number(formData.teilnehmer);
     const gesamtGewinn = gesamtEinnahmen - gesamtZeitkosten - gesamtZusatzkosten;
+
+    const stundenaufwandGesamt = (Number(formData.vorbereitungszeit) + 1) * Number(formData.anzahlLektionen);
+    const stundenlohnEffektiv = gesamtGewinn / stundenaufwandGesamt;
 
     return {
       zeitaufwandProLektion,
@@ -75,7 +96,9 @@ const KursCalculator = () => {
       gesamtZeitkosten,
       gesamtZusatzkosten,
       gesamtEinnahmen,
-      gesamtGewinn
+      gesamtGewinn,
+      stundenaufwandGesamt,
+      stundenlohnEffektiv
     };
   };
 
@@ -92,7 +115,7 @@ const KursCalculator = () => {
     <div className="min-h-screen bg-gray-100 py-6">
       <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-xl font-bold mb-4">
-          {showResults ? 'Kurs-Auswertung (8 Wochen)' : 'Kurs-Kalkulator'}
+          {showResults ? 'Kurs-Auswertung' : 'Kurs-Kalkulator'}
         </h1>
         
         {!showResults ? (
@@ -152,8 +175,9 @@ const KursCalculator = () => {
                     <p>Einnahmen: {results.einnahmenProLektion.toFixed(2)} CHF</p>
                   </div>
 
-                  <h3 className="font-bold text-lg pt-4">Gesamtberechnung (8 Wochen):</h3>
+                  <h3 className="font-bold text-lg pt-4">Gesamtberechnung für {formData.anzahlLektionen} Lektionen:</h3>
                   <div className="space-y-2">
+                    <p>Gesamter Zeitaufwand: {results.stundenaufwandGesamt} Stunden</p>
                     <p>Gesamte Zeitkosten: {results.gesamtZeitkosten.toFixed(2)} CHF</p>
                     <p>Gesamte Zusatzkosten: {results.gesamtZusatzkosten.toFixed(2)} CHF</p>
                     <p>Gesamte Einnahmen: {results.gesamtEinnahmen.toFixed(2)} CHF</p>
@@ -164,12 +188,29 @@ const KursCalculator = () => {
                         <span className="text-red-600">Verlust: {Math.abs(results.gesamtGewinn).toFixed(2)} CHF</span>
                       )}
                     </p>
+                    <p className="pt-2">
+                      Effektiver Stundenlohn: {results.stundenlohnEffektiv.toFixed(2)} CHF
+                    </p>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-gray-50 rounded text-sm">
+                    <h4 className="font-bold mb-2">Berechnungsgrundlagen:</h4>
+                    <ul className="space-y-1">
+                      <li>• Stundensatz: {formData.stundensatz} CHF/h</li>
+                      <li>• Kursgebühr pro Teilnehmer: {formData.kursgebuehr} CHF</li>
+                      <li>• Anzahl Lektionen: {formData.anzahlLektionen}</li>
+                      <li>• Anzahl Teilnehmer: {formData.teilnehmer}</li>
+                      <li>• Parallel laufende Kurse: {formData.parallelKurse}</li>
+                    </ul>
                   </div>
 
                   <button
                     onClick={() => {
                       setStep(0);
                       setFormData({
+                        stundensatz: '',
+                        kursgebuehr: '',
+                        anzahlLektionen: '',
                         parallelKurse: '',
                         teilnehmer: '',
                         vorbereitungszeit: '',
