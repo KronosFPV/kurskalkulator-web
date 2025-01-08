@@ -1,11 +1,9 @@
 import ThemeProvider from '../components/ThemeProvider';
 
-function MyApp({ Component, pageProps }) {
+export default function App({ Component, pageProps }) {
   return (
-    <ThemeProvider>
+    <div className="min-h-screen bg-gray-100">
       <Component {...pageProps} />
-    </ThemeProvider>
+    </div>
   );
 }
-
-export default MyApp;
