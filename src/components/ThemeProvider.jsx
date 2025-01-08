@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon } from 'lucide-react';
 
 const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    // Check if user has a theme preference in localStorage
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
@@ -31,13 +29,8 @@ const ThemeProvider = ({ children }) => {
       <button
         onClick={toggleTheme}
         className="fixed top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-        aria-label="Toggle theme"
       >
-        {darkMode ? (
-          <Sun className="w-6 h-6 text-yellow-500" />
-        ) : (
-          <Moon className="w-6 h-6 text-gray-700" />
-        )}
+        {darkMode ? '☀️' : '🌙'}
       </button>
       {children}
     </div>
